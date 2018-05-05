@@ -27,22 +27,37 @@ from util import is_chinese
     跳出循环
     '''
 '''
+    改进版：
+        1. 寻找第一行有字的
+        2. 寻找到第二行有字
+            2a.如果第一行结尾不是能换段的符号，则第一行删除后空格，保存
+            第二行删除前空格，传入1
+                   
+            2b.如果第一行是能换段的符号，则第一行删除后空格，增加换行符，保存。
+            第二行删除前空格，增加4空格，传入1
+            
+            列举出能换段的符号：。，＊，：，>，」，"，
+            列举出不能换段的符号：，，…，中文字符，
+        
+    
+    '''
+
+'''
     Q1.如何判断一行是一行，而不是非正常截断
         1.末尾是中文。并且该行不是标题。
             标题判断：TODO
                 1.前面大片空格。去掉后，该行不为空
                 2.包含特殊符号格式。比如（1或一）或者第×章
-'''
+    '''
+
+
 def change(filepath):
     f = open(filepath, 'r', encoding=testDecode(filepath))
     fnew = open(filepath[:-4] + '_new.txt', 'w+', encoding="utf-8")  # 将结果存入新的文本中
     fristLine = None
-    secondLine = ""
-    tempLine = ""
-
 
     while True:
-        if not fristLine:#fristline为空则读取
+        if not fristLine:  # fristline为空则读取
             fristLine = f.readline()
 
         if not fristLine:
@@ -50,46 +65,49 @@ def change(filepath):
 
         newLine = fristLine.strip()
         # print(newLine)
-        if len(newLine) != 0:#第一行有字
+        if len(newLine) != 0:  # 第一行有字
             secondLine = f.readline()
+            if not secondLine:#第二行没有，即为退出
+                fnew.write(fristLine.strip())
+                break
 
-            if len(secondLine.strip()) != 0:#第二行非空，使用情况2
-                if (not is_chinese(newLine[-1])):  # 末尾不是中文
-                    fnew.write(fristLine)
-                else:  # 末尾是中文
-                    fnew.write(fristLine.rstrip())
-                fristLine = secondLine #第二行传给第一行
-                continue
-            tempLine = f.readline()
-            temp = tempLine.strip()
-            if len(temp) != 0:#第三行不是空
-                if(not is_chinese(newLine[-1])):  # 末尾不是中文
-                    fnew.write(fristLine.rstrip())  # 保存第一行
-                    fnew.write(secondLine)  # 保存空行
-                    fristLine = tempLine
-                    continue
-                else:#末尾是中文
-                    fnew.write(fristLine.rstrip())# 保存第一行
-                    fristLine = tempLine.lstrip()
-                # print(fristLine)
-            else:  #第三行是空
-                fnew.write(fristLine)  # 保存第一行
-                fnew.write(secondLine)  # 保存第二行
-                tempLine = f.readline()
-                # print(fristLine)
-                while len(tempLine.strip()) == 0:#寻找非空的行
-                    tempLine = f.readline()
-                    if not tempLine:
-                        break
-                fristLine = tempLine
+            while len(secondLine.strip()) == 0:
+                secondLine = f.readline()
+                if not secondLine:#第二行没有，即为退出
+                    fnew.write(fristLine.strip())
+                    break
+
+            firstLast = fristLine.strip()[-1]
+            if firstLast in ["。", "＊", "：", ">", "」", '）', '？',
+                               '！', ')', '＝', '”', '^', '*', '】',
+                               '▲', '▽', '☆', '○', '¨', '╔']:  # 能换段
+                fnew.write(fristLine.rstrip())
+                fnew.write("\n")
+                fristLine = "    %s" % (secondLine.strip())
+                pass
+            elif firstLast in ["，", "…", "、", '「', '(', "（", "<", '—'] \
+                    or is_chinese(firstLast) or firstLast.isalnum():  # 不能换段
+                fnew.write(fristLine.rstrip())
+                fristLine = secondLine.strip()
+                pass
+            else:
+                print("特殊字符 %s" % firstLast)
+                fnew.write(fristLine.rstrip())
+                fnew.write("\n")
+                fristLine = "    %s" % (secondLine.strip())
+            fnew.flush()
         else:  # 第一行为空，重读
             fristLine = f.readline()
     f.close()
     fnew.close()
+
+
 def testcChinese():
     for str in "我1.。a":  # 只有“我”是true
-        print("%s is chinese:%r"%(str,is_chinese(str)))
+        print("%s is chinese:%r" % (str, is_chinese(str)))
     pass
+
+
 def testDecode(filepath):
     tt = open(filepath, 'rb')
     ff = tt.read(200)  # 这里试着换成read(5)也可以，但是换成readlines()后报错
@@ -101,8 +119,9 @@ def testDecode(filepath):
         ret = "gbk"
     return ret
 
+
 if __name__ == '__main__':
-    file = u"/home/torahli/下载/ceshi.txt"
+    file = u"/Users/torah/Desktop/test/ceshi-续写.txt"
     change(file)
     # print(testDecode(file))
     # testcChinese()

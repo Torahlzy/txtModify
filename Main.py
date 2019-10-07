@@ -80,7 +80,7 @@ def change(filepath):
             firstLast = fristLine.strip()[-1]
             if firstLast in ["。", "＊", "：", ">", "」", '）', '？',
                                '！', ')', '＝', '”', '^', '*', '】',
-                               '▲', '▽', '☆', '○', '¨', '╔']:  # 能换段
+                               '▲', '▽', '☆', '○', '¨', '╔','?','》',';']:  # 能换段
                 fnew.write(fristLine.rstrip())
                 fnew.write("\n")
                 fristLine = "    %s" % (secondLine.strip())
@@ -121,7 +121,7 @@ def testDecode(filepath):
 
 
 if __name__ == '__main__':
-    file = u"/Users/torah/Desktop/test/ceshi-续写.txt"
+    file = u"./xyhj.txt"
     change(file)
     # print(testDecode(file))
     # testcChinese()
